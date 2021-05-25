@@ -5,12 +5,8 @@ import sympy as sp
 from scipy.linalg import expm
 # %%
 def expo_euler_step(yk, h, f, J):
-    print(J, J.shape)
     def phi(z):
-        # return (expm(z) - 1) @ np.linalg.inv(z)
         return (expm(z) - np.eye(2)) @ np.linalg.inv(z)
-        # return expm1_v(z)/z
-        # return np.expm1(z)/z
     print(np.shape(h*phi(h*J) @ f(*yk)), np.shape(f(*yk)))
     return yk + h*phi(h*J) @ f(*yk)
 
@@ -19,11 +15,7 @@ def wrapper(f, Df, N, y0, t):
     y = np.zeros((N,) + y0.shape)
     y[0,...] = y0
     for k in range(N-1):
-        y1,y2 = y[k]
-        # NOTE: Sympy is generating bad code, that doesnt want to let it reshape itself
-        # y[k+1] = expo_euler_step(y[k], h, f, np.array([[2,2],[0,-1]]) )
-        # y[k+1] = expo_euler_step(y[k], h, f, Df(y1,y2).reshape(2,2))
-        y[k+1] = expo_euler_step(y[k], h, f, Df(y1,y2))
+        y[k+1] = expo_euler_step(y[k], h, f, Df(*y[k]))
     return y, t
 
 
