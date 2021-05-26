@@ -5,10 +5,11 @@ import sympy as sp
 from scipy.linalg import expm
 # %%
 def expo_euler_step(yk, h, f, J):
-    def phi(z):
-        return (expm(z) - np.eye(2)) @ np.linalg.inv(z)
-    print(np.shape(h*phi(h*J) @ f(*yk)), np.shape(f(*yk)))
-    return yk + h*phi(h*J) @ f(*yk)
+    z = h*J
+    A = expm(z) - np.eye(2)
+    b = z @ f(*yk)
+    prop = np.linalg.solve(A, b)
+    return yk + h*prop
 
 def wrapper(f, Df, N, y0, t):
     t, h = np.linspace(0,t, N, retstep=True)
@@ -18,7 +19,7 @@ def wrapper(f, Df, N, y0, t):
         y[k+1] = expo_euler_step(y[k], h, f, Df(*y[k]))
     return y, t
 
-
+solution = lambda t: np.array([-np.cos(t) * np.exp(np.sin(t)), np.exp(np.sin(t))])
 if __name__ == "__main__":
     y1,y2 = sp.symbols("y1,y2")
 
@@ -26,13 +27,23 @@ if __name__ == "__main__":
     Df_sp = f_sp.jacobian((y1,y2))
     
     f0 = sp.lambdify((y1, y2), f_sp)
-    f = lambda *x : np.reshape(f0(*x), (2,1))
+    f = lambda *x : np.reshape(f0(*x), (2,1)).astype(np.double)
     Df0 = sp.lambdify((y1, y2), Df_sp)
     Df = lambda *x : np.reshape(Df0(*x), (2,2)).astype(np.double)
 
     y0 = np.array([-1.,1.]).reshape(2,1)
 
-    y,t = wrapper(f, Df, 48, y0, 6)
+    T = 6
+    y,t = wrapper(f, Df, 48, y0, T)
+    plt.plot(t, y[:, 0])
+    plt.clf()
 
-    plt.plot(*y)
+    n = 5
+    error = np.zeros(n)
+    timesteps = np.geomspace(24, 384, 5).astype(int)
+    for i,k in enumerate(timesteps):
+        y,t = wrapper(f, Df, k, y0, T)
+        error[i] = np.linalg.norm(y[-1,:] - solution(t))
+    print(error)
+    plt.loglog(timesteps, error)
     plt.show()
