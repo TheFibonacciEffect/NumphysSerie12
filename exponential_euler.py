@@ -30,7 +30,8 @@ def wrapper(f, Df, N, y0, t):
 if __name__ == "__main__":
     y1,y2 = sp.symbols("y1,y2")
 
-    f_sp = sp.Matrix([-y1**2/y2+ y2* sp.log(y2), -y2])
+    ### Da hattest du einen Fehler in der RHS (-y2 am Schluss statt -y1)
+    f_sp = sp.Matrix([-y1**2/y2+ y2* sp.log(y2), -y1])
     Df_sp = f_sp.jacobian((y1,y2))
     
     f0 = sp.lambdify((y1, y2), f_sp)
@@ -42,5 +43,7 @@ if __name__ == "__main__":
 
     y,t = wrapper(f, Df, 48, y0, 6)
 
-    plt.plot(*y)
+    #plt.plot(*y)
+    plt.plot(t,y[:,0],label=r'$y_1$')
+    plt.plot(t,y[:,1],label=r'$y_2$')
     plt.show()
