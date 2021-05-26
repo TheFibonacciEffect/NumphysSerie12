@@ -23,7 +23,8 @@ solution = lambda t: np.array([-np.cos(t) * np.exp(np.sin(t)), np.exp(np.sin(t))
 if __name__ == "__main__":
     y1,y2 = sp.symbols("y1,y2")
 
-    f_sp = sp.Matrix([-y1**2/y2+ y2* sp.log(y2), -y2])
+    ### Da hattest du einen Fehler in der RHS (-y2 am Schluss statt -y1)
+    f_sp = sp.Matrix([-y1**2/y2+ y2* sp.log(y2), -y1])
     Df_sp = f_sp.jacobian((y1,y2))
     
     f0 = sp.lambdify((y1, y2), f_sp)
